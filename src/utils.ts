@@ -72,7 +72,10 @@ export function drawRawImageDataOnCanvas(
   console.log("Successfully drew raw image data on the canvas.");
 }
 
-async function drawBlobToCanvas(blob, canvasId = "segmentation-canvas") {
+export async function drawBlobToCanvas(
+  blob: Blob,
+  canvasId = "segmentation-canvas"
+) {
   // Get the canvas element from the DOM.
   const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
 
