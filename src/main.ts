@@ -1,6 +1,7 @@
 import { segmentImageWithBodyPix } from "./removers/bodyPix";
 import { segmentImageWithHuggingFace } from "./removers/huggingFace";
 import { removeBackgroundWithImgly } from "./removers/imgly";
+import { segmentImageWithMediapipe } from "./removers/mediapipe";
 import { imageElementToBlob } from "./utils";
 
 const imageUpload = document.getElementById("image-upload") as HTMLInputElement;
@@ -76,10 +77,62 @@ async function segmentImageHuggingFace(image: HTMLImageElement): Promise<void> {
   }
 }
 
-// async function segmentImageMediapipe(image: HTMLImageElement): Promise<void> {
-//   const res = await segmentImageWithMediapipe(image);
-//   console.log(res);
-// }
+async function segmentImageMediapipe(image) {
+  // Check for the segmentImageWithMediapipe function, assuming it's available and returns a segmentation result.
+  if (typeof segmentImageWithMediapipe !== "function") {
+    console.error("The function 'segmentImageWithMediapipe' is not defined.");
+    return;
+  }
+
+  const res = await segmentImageWithMediapipe(image);
+  if (!res || !res.categoryMask) {
+    console.error("Segmentation result is invalid or missing categoryMask.");
+    return;
+  }
+
+  const mask = res.categoryMask;
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    console.error("Could not get 2D rendering context from canvas.");
+    return;
+  }
+
+  // Draw the original image onto the canvas.
+  ctx.drawImage(image, 0, 0, image.width, image.height);
+
+  // Get the pixel data from the original image on the canvas.
+  // This is the data we will modify.
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data; // This is a Uint8ClampedArray for all pixels.
+
+  // Get the segmentation mask data as a Float32Array
+  const maskData = mask.getAsFloat32Array();
+
+  // Iterate through the pixels of the mask and original image simultaneously.
+  for (let i = 0; i < mask.height * mask.width; i++) {
+    // Get the mask value for the current pixel.
+    // 1.0 = person, 0.0 = background.
+    const maskValue = maskData[i];
+
+    // Invert the masking logic: check if the pixel is part of the person.
+    if (maskValue === 1.0) {
+      // If it's a person pixel, make it fully transparent (alpha = 0).
+      // The pixel data array is structured as [R, G, B, A, R, G, B, A, ...]
+      data[i * 4 + 3] = 0;
+    }
+    // If the maskValue is 0.0, the pixel is background, and we do nothing.
+    // The alpha channel for that pixel remains as it was in the original image (presumably 255).
+  }
+
+  // Put the modified pixel data back onto the canvas.
+  ctx.putImageData(imageData, 0, 0);
+
+  // Return the canvas, which now contains the cropped image.
+  return canvas;
+}
 
 async function segmentImgly(image: HTMLImageElement): Promise<void> {
   const blob = (await imageElementToBlob(image, "image/png")) as Blob;
@@ -97,10 +150,10 @@ imageUpload.addEventListener("change", (event: Event) => {
     reader.onload = async (e: ProgressEvent<FileReader>) => {
       const img = new Image();
       img.onload = async () => {
-        await segmentImgly(img);
+        // await segmentImgly(img);
         // await segmentImageBodyPix(img);
         // await segmentImageHuggingFace(img);
-        // await segmentImageMediapipe(img);
+        await segmentImageMediapipe(img);
       };
       img.src = e.target?.result as string;
     };

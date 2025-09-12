@@ -1,47 +1,54 @@
-import {
-  FilesetResolver,
-  ImageSegmenter,
-  ImageSegmenterResult,
-} from "@mediapipe/tasks-vision";
+import { ImageSegmenter, FilesetResolver } from "@mediapipe/tasks-vision";
 
-const runningMode = "IMAGE";
-let imageSegmenter: ImageSegmenter | null = null;
+let imageSegmenter;
 
+// Load the model
+// async function createImageSegmenter() {
+//   const vision = await FilesetResolver.forVisionTasks(
+//     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+//   );
+//   imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
+//     baseOptions: {
+//       modelAssetPath:
+//         "https://storage.googleapis.com/mediapipe-assets/deeplabv3.tflite",
+//     },
+//     outputCategoryMask: true,
+//     outputConfidenceMasks: false,
+//     runningMode: "IMAGE",
+//   });
+// }
+
+// Create the ImageSegmenter instance.
 async function createImageSegmenter() {
   const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.2/wasm"
   );
-
   imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
     baseOptions: {
       modelAssetPath:
-        "https://storage.googleapis.com/mediapipe-assets/selfie_segmenter.tflite",
+        "https://storage.googleapis.com/mediapipe-assets/selfie_segmentation.tflite",
     },
     outputCategoryMask: true,
-    outputConfidenceMasks: false,
-    runningMode: runningMode, // "IMAGE", "VIDEO", or "LIVE_STREAM"
   });
+  console.log("Image Segmenter loaded successfully!");
 }
+
 createImageSegmenter();
 
 export async function segmentImageWithMediapipe(
   image: HTMLImageElement
-): Promise<ImageSegmenterResult | undefined> {
+): Promise<any> {
   if (!imageSegmenter) {
-    console.error("Mediapipe Image Segmenter is not loaded.");
     await createImageSegmenter();
     if (!imageSegmenter) {
-      console.error("Mediapipe Image Segmenter not loaded yet.");
-      return;
+      throw new Error("Model not loaded");
     }
   }
 
   try {
-    const res = imageSegmenter.segment(image);
-    return res;
+    const result = imageSegmenter.segment(image);
+    return result;
   } catch (error) {
-    console.error("Error during image segmentation:", error);
+    console.error("Error processing the image:", error);
   }
 }
-
-createImageSegmenter();
