@@ -1,8 +1,4 @@
-import {
-  drawBlobToCanvas,
-  drawRawImageDataOnCanvas,
-  imageElementToBlob,
-} from "./utils";
+import { drawBlobToCanvas, drawRawImageDataOnCanvas } from "./utils";
 import { ModelType, type ModelTypeKeys } from "./types";
 import { prepareImageForModel } from "./imgConverter";
 

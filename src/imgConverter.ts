@@ -169,9 +169,6 @@ const ImageConverter = {
   },
 };
 
-/**
- * Main conversion function that uses the utility functions
- */
 async function convertImage(
   imageData: AllowedImageTypes,
   targetType: ConversionTarget,
