@@ -1,22 +1,6 @@
 import { ImageSegmenter, FilesetResolver } from "@mediapipe/tasks-vision";
 
-let imageSegmenter;
-
-// Load the model
-// async function createImageSegmenter() {
-//   const vision = await FilesetResolver.forVisionTasks(
-//     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-//   );
-//   imageSegmenter = await ImageSegmenter.createFromOptions(vision, {
-//     baseOptions: {
-//       modelAssetPath:
-//         "https://storage.googleapis.com/mediapipe-assets/deeplabv3.tflite",
-//     },
-//     outputCategoryMask: true,
-//     outputConfidenceMasks: false,
-//     runningMode: "IMAGE",
-//   });
-// }
+let imageSegmenter: ImageSegmenter | undefined;
 
 // Create the ImageSegmenter instance.
 async function createImageSegmenter() {
@@ -28,7 +12,7 @@ async function createImageSegmenter() {
       modelAssetPath:
         "https://storage.googleapis.com/mediapipe-assets/selfie_segmentation.tflite",
     },
-    outputCategoryMask: true,
+    runningMode: "IMAGE",
   });
   console.log("Image Segmenter loaded successfully!");
 }
@@ -36,7 +20,7 @@ async function createImageSegmenter() {
 createImageSegmenter();
 
 export async function segmentImageWithMediapipe(
-  image: HTMLImageElement
+  image: HTMLImageElement | ImageBitmap | ImageData | HTMLCanvasElement
 ): Promise<any> {
   if (!imageSegmenter) {
     await createImageSegmenter();

@@ -17,21 +17,15 @@ async function loadModel() {
   }
 }
 
-export async function segmentImageWithHuggingFace(
-  image: HTMLImageElement
-): Promise<any> {
-  // This function is a placeholder to match the expected interface.
-  // The actual segmentation is handled in the event listener below.
+export async function segmentImageWithHuggingFace(image: Blob): Promise<any> {
   if (!removerPipeline) {
     await loadModel();
     if (!removerPipeline) {
       throw new Error("Model not loaded");
     }
   }
-
   try {
-    const blob = await imageElementToBlob(image, "image/png");
-    const result = await removerPipeline(blob);
+    const result = await removerPipeline(image);
     return result;
   } catch (error) {
     console.error("Error processing the image:", error);

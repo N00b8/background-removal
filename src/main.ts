@@ -1,16 +1,17 @@
-import { segmentImageWithBodyPix } from "./removers/bodyPix";
-import { segmentImageWithHuggingFace } from "./removers/huggingFace";
-import { removeBackgroundWithImgly } from "./removers/imgly";
-import { segmentImageWithMediapipe } from "./removers/mediapipe";
-import { imageElementToBlob } from "./utils";
+import { drawRawImageDataOnCanvas, imageElementToBlob } from "./utils";
+import { ModelType, type ModelTypeKeys } from "./types";
+import { prepareImageForModel } from "./imgConverter";
 
 const imageUpload = document.getElementById("image-upload") as HTMLInputElement;
 const canvas = document.getElementById(
   "segmentation-canvas"
 ) as HTMLCanvasElement;
 
-async function segmentImageBodyPix(image: HTMLImageElement): Promise<void> {
-  const bodyPixResults = await segmentImageWithBodyPix(image); // This should now return an array
+async function segmentImageBodyPix(
+  image: HTMLImageElement | ImageData
+): Promise<void> {
+  const bodyPixModule = await import("./removers/bodyPix");
+  const bodyPixResults = await bodyPixModule.segmentImageWithBodyPix(image); // This should now return an array
   if (bodyPixResults && bodyPixResults.length > 0) {
     canvas.width = image.width;
     canvas.height = image.height;
@@ -71,20 +72,17 @@ async function segmentImageBodyPix(image: HTMLImageElement): Promise<void> {
 }
 
 async function segmentImageHuggingFace(image: HTMLImageElement): Promise<void> {
-  const res = await segmentImageWithHuggingFace(image);
+  const huggingFaceModule = await import("./removers/huggingFace");
+  const res = await huggingFaceModule.segmentImageWithHuggingFace(image);
   if (res) {
     drawRawImageDataOnCanvas(res[0]);
   }
 }
 
 async function segmentImageMediapipe(image) {
-  // Check for the segmentImageWithMediapipe function, assuming it's available and returns a segmentation result.
-  if (typeof segmentImageWithMediapipe !== "function") {
-    console.error("The function 'segmentImageWithMediapipe' is not defined.");
-    return;
-  }
+  const mediapipeModule = await import("./removers/mediapipe");
 
-  const res = await segmentImageWithMediapipe(image);
+  const res = await mediapipeModule.segmentImageWithMediapipe(image);
   if (!res || !res.categoryMask) {
     console.error("Segmentation result is invalid or missing categoryMask.");
     return;
@@ -135,12 +133,45 @@ async function segmentImageMediapipe(image) {
 }
 
 async function segmentImgly(image: HTMLImageElement): Promise<void> {
+  const imglyModule = await import("./removers/imgly");
+  //ImageData | ArrayBuffer | Uint8Array | Blob | URL | string | NdArray<Uint8Array>
   const blob = (await imageElementToBlob(image, "image/png")) as Blob;
-  const res = await removeBackgroundWithImgly(blob);
+  const res = await imglyModule.removeBackgroundWithImgly(blob);
   drawBlobToCanvas(res);
-  console.log(res);
 }
 
+async function getModelFunction(
+  modelType: ModelTypeKeys
+): Promise<(img: any) => Promise<any>> {
+  switch (modelType) {
+    case ModelType.BodyPix:
+      return segmentImageBodyPix;
+    case ModelType.HuggingFace:
+      return segmentImageHuggingFace;
+    case ModelType.Imgly:
+      return segmentImgly;
+    case ModelType.Mediapipe:
+      return segmentImageMediapipe;
+    default:
+      throw new Error(`Invalid model type: ${modelType}`);
+  }
+}
+
+export async function segmentImage(
+  image: HTMLImageElement,
+  { model = ModelType.HuggingFace }: { model: ModelTypeKeys } = {
+    model: ModelType.HuggingFace,
+  }
+): Promise<void> {
+  const segmenter = await getModelFunction(model);
+  const processedImage = await prepareImageForModel(image, model);
+  document.getElementById("header")!.innerText = `Using model: ${model}`;
+  if (!segmenter) {
+    console.error(`No segmentation function found for model: ${model}`);
+    return;
+  }
+  await segmenter(processedImage);
+}
 // Event listener for the file input
 imageUpload.addEventListener("change", (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -149,13 +180,10 @@ imageUpload.addEventListener("change", (event: Event) => {
     const reader = new FileReader();
     reader.onload = async (e: ProgressEvent<FileReader>) => {
       const img = new Image();
-      img.onload = async () => {
-        // await segmentImgly(img);
-        // await segmentImageBodyPix(img);
-        // await segmentImageHuggingFace(img);
-        await segmentImageMediapipe(img);
-      };
       img.src = e.target?.result as string;
+      img.onload = async () => {
+        await segmentImage(img);
+      };
     };
     reader.readAsDataURL(file);
   }

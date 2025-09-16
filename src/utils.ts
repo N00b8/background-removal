@@ -105,3 +105,31 @@ export async function drawBlobToCanvas(
     console.error("Failed to create ImageBitmap or draw to canvas:", error);
   }
 }
+
+export function isValidImageDataUrl(
+  dataUrl: string,
+  allowedTypes: string[] = ["image/png", "image/jpeg", "image/gif"]
+): boolean {
+  // Check if it's a Data URL
+  if (!dataUrl.startsWith("data:")) return false;
+
+  // Extract MIME type
+  const mimeMatch = dataUrl.match(/^data:(.*?);base64,/);
+  if (!mimeMatch) return false;
+
+  const mimeType = mimeMatch[1];
+  return allowedTypes.includes(mimeType);
+}
+
+export async function htmlImageToImageData(
+  img: HTMLImageElement
+): Promise<ImageData> {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+
+  ctx.drawImage(img, 0, 0);
+  return ctx.getImageData(0, 0, canvas.width, canvas.height);
+}

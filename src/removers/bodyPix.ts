@@ -24,7 +24,7 @@ async function createImageSegmenter(): Promise<void> {
 }
 
 export async function segmentImageWithBodyPix(
-  image: HTMLImageElement
+  image: HTMLImageElement | ImageData
 ): Promise<PersonSegmentation[] | undefined> {
   if (!bodyPixNet) {
     console.error("BodyPix model is not loaded.");
