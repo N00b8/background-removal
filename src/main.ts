@@ -10,7 +10,7 @@ const canvas = document.getElementById(
 async function segmentImageBodyPix(
   image: HTMLImageElement | ImageData
 ): Promise<void> {
-  const bodyPixModule = await import("./removers/bodyPix");
+  const bodyPixModule = await import("./models/bodyPix");
   const bodyPixResults = await bodyPixModule.segmentImageWithBodyPix(image); // This should now return an array
   if (bodyPixResults && bodyPixResults.length > 0) {
     canvas.width = image.width;
@@ -71,8 +71,8 @@ async function segmentImageBodyPix(
   }
 }
 
-async function segmentImageHuggingFace(image: HTMLImageElement): Promise<void> {
-  const huggingFaceModule = await import("./removers/huggingFace");
+async function segmentImageHuggingFace(image: Blob): Promise<void> {
+  const huggingFaceModule = await import("./models/huggingFace");
   const res = await huggingFaceModule.segmentImageWithHuggingFace(image);
   if (res) {
     drawRawImageDataOnCanvas(res[0]);
@@ -80,7 +80,7 @@ async function segmentImageHuggingFace(image: HTMLImageElement): Promise<void> {
 }
 
 async function segmentImageMediapipe(image) {
-  const mediapipeModule = await import("./removers/mediapipe");
+  const mediapipeModule = await import("./models/mediapipe");
 
   const res = await mediapipeModule.segmentImageWithMediapipe(image);
   if (!res || !res.categoryMask) {
@@ -133,7 +133,7 @@ async function segmentImageMediapipe(image) {
 }
 
 async function segmentImgly(image: HTMLImageElement): Promise<void> {
-  const imglyModule = await import("./removers/imgly");
+  const imglyModule = await import("./models/imgly");
   //ImageData | ArrayBuffer | Uint8Array | Blob | URL | string | NdArray<Uint8Array>
   const blob = (await imageElementToBlob(image, "image/png")) as Blob;
   const res = await imglyModule.removeBackgroundWithImgly(blob);
