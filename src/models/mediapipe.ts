@@ -13,6 +13,8 @@ async function createImageSegmenter() {
         "https://storage.googleapis.com/mediapipe-assets/selfie_segmentation.tflite",
     },
     runningMode: "IMAGE",
+    outputCategoryMask: true,
+    outputConfidenceMasks: false,
   });
   console.log("Image Segmenter loaded successfully!");
 }
@@ -20,7 +22,7 @@ async function createImageSegmenter() {
 createImageSegmenter();
 
 export async function segmentImageWithMediapipe(
-  image: HTMLImageElement | ImageBitmap | ImageData | HTMLCanvasElement
+  image: HTMLImageElement | ImageBitmap | ImageData
 ): Promise<any> {
   if (!imageSegmenter) {
     await createImageSegmenter();
@@ -31,6 +33,7 @@ export async function segmentImageWithMediapipe(
 
   try {
     const result = imageSegmenter.segment(image);
+    console.log("Segmentation result:", result);
     return result;
   } catch (error) {
     console.error("Error processing the image:", error);

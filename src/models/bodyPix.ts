@@ -27,7 +27,6 @@ export async function segmentImageWithBodyPix(
   image: HTMLImageElement | ImageData
 ): Promise<PersonSegmentation[] | undefined> {
   if (!bodyPixNet) {
-    console.error("BodyPix model is not loaded.");
     await createImageSegmenter();
     if (!bodyPixNet) {
       console.error("BodyPix model not loaded yet.");
@@ -44,14 +43,13 @@ export async function segmentImageWithBodyPix(
     const bodyPixResult = await bodyPixNet.segmentMultiPerson(image, {
       flipHorizontal: false,
       internalResolution: "full",
-      segmentationThreshold: 0.7,
+      segmentationThreshold: 0.8,
       maxDetections: 4,
       scoreThreshold: 0.2,
       nmsRadius: 20,
       minKeypointScore: 0.3,
       refineSteps: 10,
     });
-    console.log("Multi-person segmentation result:", bodyPixResult);
     return bodyPixResult;
   } catch (error) {
     console.error("Error during image segmentation:", error);

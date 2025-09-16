@@ -1,4 +1,8 @@
-import { drawRawImageDataOnCanvas, imageElementToBlob } from "./utils";
+import {
+  drawBlobToCanvas,
+  drawRawImageDataOnCanvas,
+  imageElementToBlob,
+} from "./utils";
 import { ModelType, type ModelTypeKeys } from "./types";
 import { prepareImageForModel } from "./imgConverter";
 
@@ -79,9 +83,8 @@ async function segmentImageHuggingFace(image: Blob): Promise<void> {
   }
 }
 
-async function segmentImageMediapipe(image) {
+async function segmentImageMediapipe(image: HTMLImageElement): Promise<void> {
   const mediapipeModule = await import("./models/mediapipe");
-
   const res = await mediapipeModule.segmentImageWithMediapipe(image);
   if (!res || !res.categoryMask) {
     console.error("Segmentation result is invalid or missing categoryMask.");
@@ -129,14 +132,11 @@ async function segmentImageMediapipe(image) {
   ctx.putImageData(imageData, 0, 0);
 
   // Return the canvas, which now contains the cropped image.
-  return canvas;
 }
 
-async function segmentImgly(image: HTMLImageElement): Promise<void> {
+async function segmentImgly(image: Blob): Promise<void> {
   const imglyModule = await import("./models/imgly");
-  //ImageData | ArrayBuffer | Uint8Array | Blob | URL | string | NdArray<Uint8Array>
-  const blob = (await imageElementToBlob(image, "image/png")) as Blob;
-  const res = await imglyModule.removeBackgroundWithImgly(blob);
+  const res = await imglyModule.removeBackgroundWithImgly(image);
   drawBlobToCanvas(res);
 }
 
@@ -159,8 +159,8 @@ async function getModelFunction(
 
 export async function segmentImage(
   image: HTMLImageElement,
-  { model = ModelType.HuggingFace }: { model: ModelTypeKeys } = {
-    model: ModelType.HuggingFace,
+  { model = ModelType.Mediapipe }: { model: ModelTypeKeys } = {
+    model: ModelType.Mediapipe,
   }
 ): Promise<void> {
   const segmenter = await getModelFunction(model);
@@ -188,6 +188,3 @@ imageUpload.addEventListener("change", (event: Event) => {
     reader.readAsDataURL(file);
   }
 });
-function drawBlobToCanvas(res: Blob) {
-  throw new Error("Function not implemented.");
-}

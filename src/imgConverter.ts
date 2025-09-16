@@ -164,27 +164,8 @@ const ImageConverter = {
     if (!isValidImageDataUrl(dataUrl)) {
       throw new Error("Invalid data URL");
     }
-
-    // Split the Data URL into the MIME type and the Base64 data
-    const [header, base64Data] = dataUrl.split(",");
-    if (!header || !base64Data) {
-      throw new Error("Invalid Data URL.");
-    }
-
-    // Extract MIME type (e.g., image/png)
-    const mimeMatch = header.match(/data:(.*);base64/);
-    const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
-
-    // Decode Base64 string to raw binary
-    const byteString = atob(base64Data);
-    const byteNumbers = new Array(byteString.length);
-    for (let i = 0; i < byteString.length; i++) {
-      byteNumbers[i] = byteString.charCodeAt(i);
-    }
-
-    // Create a typed array and then a Blob
-    const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
+    const response = await fetch(dataUrl);
+    return await response.blob();
   },
 };
 
