@@ -9,7 +9,6 @@ import { isValidImageDataUrl } from "./utils";
 
 // Define supported types for each model
 export const MODEL_SUPPORTED_TYPES: Record<ModelTypeKeys, string[]> = {
-  Imgly: ["Blob", "ImageData"], // dataurl,  image element => blob
   HuggingFace: ["Blob"], // dataurl, imageData , image element => blob
   Mediapipe: ["HTMLImageElement", "ImageData"], // dataurl,blob => HTMLImageElement
   BodyPix: ["HTMLImageElement", "ImageData"], // dataurl,blob, bitmap => HTMLImageElement
@@ -43,11 +42,6 @@ function decideOptimalImageConversion(
   let targetType: ConversionTarget;
 
   switch (selectedModel) {
-    case ModelType.Imgly:
-      // imgly supports ImageData and Blob
-      targetType = "Blob";
-      break;
-
     case ModelType.HuggingFace:
       // huggingface only supports Blob
       targetType = "Blob";

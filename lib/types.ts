@@ -1,6 +1,5 @@
 export const ModelType = {
   BodyPix: "BodyPix",
-  Imgly: "Imgly",
   HuggingFace: "HuggingFace",
   Mediapipe: "Mediapipe",
 } as const;

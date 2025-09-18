@@ -1,5 +1,5 @@
 export async function imageElementToBlob(
-  imageElement,
+  imageElement: HTMLImageElement,
   mimeType = "image/png",
   quality = 1.0
 ) {
@@ -37,7 +37,7 @@ export async function imageElementToBlob(
 }
 
 export function drawRawImageDataOnCanvas(
-  imageDataObject,
+  imageDataObject: ImageData,
   canvasId = "segmentation-canvas"
 ) {
   // Get the canvas element from the DOM.

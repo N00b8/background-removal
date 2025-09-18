@@ -1,8 +1,7 @@
-import { drawBlobToCanvas, drawRawImageDataOnCanvas } from "./utils";
+import { drawRawImageDataOnCanvas } from "./utils";
 import { ModelType, type ModelTypeKeys } from "./types";
 import { prepareImageForModel } from "./imgConverter";
 
-const imageUpload = document.getElementById("image-upload") as HTMLInputElement;
 const canvas = document.getElementById(
   "segmentation-canvas"
 ) as HTMLCanvasElement;
@@ -60,7 +59,11 @@ async function segmentImageBodyPix(
 
     // Step 1: Draw the original image
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    if (image instanceof HTMLImageElement) {
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.putImageData(image, 0, 0);
+    }
 
     // Step 2: Apply the combined mask
     ctx.globalCompositeOperation = "destination-in";
@@ -130,12 +133,6 @@ async function segmentImageMediapipe(image: HTMLImageElement): Promise<void> {
   // Return the canvas, which now contains the cropped image.
 }
 
-async function segmentImgly(image: Blob): Promise<void> {
-  const imglyModule = await import("./models/imgly");
-  const res = await imglyModule.removeBackgroundWithImgly(image);
-  drawBlobToCanvas(res);
-}
-
 async function getModelFunction(
   modelType: ModelTypeKeys
 ): Promise<(img: any) => Promise<any>> {
@@ -144,8 +141,6 @@ async function getModelFunction(
       return segmentImageBodyPix;
     case ModelType.HuggingFace:
       return segmentImageHuggingFace;
-    case ModelType.Imgly:
-      return segmentImgly;
     case ModelType.Mediapipe:
       return segmentImageMediapipe;
     default:
@@ -168,19 +163,3 @@ export async function segmentImage(
   }
   await segmenter(processedImage);
 }
-// Event listener for the file input
-imageUpload.addEventListener("change", (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file: File | undefined = target.files?.[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = async (e: ProgressEvent<FileReader>) => {
-      const img = new Image();
-      img.src = e.target?.result as string;
-      img.onload = async () => {
-        await segmentImage(img);
-      };
-    };
-    reader.readAsDataURL(file);
-  }
-});
