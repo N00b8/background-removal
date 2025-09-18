@@ -3,12 +3,14 @@
   "private": false,
   "version": "0.0.1",
   "type": "module",
+   "types": "dist/main.d.ts",
   "scripts": {
     "build": "tsc && vite build"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.7.2",
@@ -18,12 +20,12 @@
     "onnxruntime-web": "^1.21.0-dev.20250206-d981b153d3"
   },
   "description": "remove backgrounds from images",
-  "main": "dist/background-remover.umd.cjs",
-  "module": "dist/background-remover.js",
+  "main": "dist/main.umd.cjs",
+  "module": "dist/main.js",
   "exports": {
     ".": {
-      "import": "./dist/background-remover.js",
-      "require": "./dist/background-remover.umd.cjs"
+      "import": "./dist/main.js",
+      "require": "./dist/main.umd.cjs"
     }
   },
   "repository": {

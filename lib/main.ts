@@ -1,16 +1,16 @@
 import { drawRawImageDataOnCanvas } from "./utils";
-import { ModelType, type ModelTypeKeys } from "./types";
+import { ModelType, type AllowedImageTypes, type ModelTypeKeys } from "./types";
 import { prepareImageForModel } from "./imgConverter";
-
-const canvas = document.getElementById(
-  "segmentation-canvas"
-) as HTMLCanvasElement;
 
 async function segmentImageBodyPix(
   image: HTMLImageElement | ImageData
 ): Promise<void> {
   const bodyPixModule = await import("./models/bodyPix");
   const bodyPixResults = await bodyPixModule.segmentImageWithBodyPix(image); // This should now return an array
+  const canvas = document.getElementById(
+    "segmentation-canvas"
+  ) as HTMLCanvasElement;
+  console.log("BodyPix results:", canvas); // Log the results to see the structure
   if (bodyPixResults && bodyPixResults.length > 0) {
     canvas.width = image.width;
     canvas.height = image.height;
@@ -83,6 +83,9 @@ async function segmentImageHuggingFace(image: Blob): Promise<void> {
 }
 
 async function segmentImageMediapipe(image: HTMLImageElement): Promise<void> {
+  const canvas = document.getElementById(
+    "segmentation-canvas"
+  ) as HTMLCanvasElement;
   const mediapipeModule = await import("./models/mediapipe");
   const res = await mediapipeModule.segmentImageWithMediapipe(image);
   if (!res || !res.categoryMask) {
@@ -149,14 +152,13 @@ async function getModelFunction(
 }
 
 export async function segmentImage(
-  image: HTMLImageElement,
-  { model = ModelType.Mediapipe }: { model: ModelTypeKeys } = {
-    model: ModelType.Mediapipe,
+  image: AllowedImageTypes,
+  { model = ModelType.BodyPix }: { model: ModelTypeKeys } = {
+    model: ModelType.BodyPix,
   }
 ): Promise<void> {
   const segmenter = await getModelFunction(model);
   const processedImage = await prepareImageForModel(image, model);
-  document.getElementById("header")!.innerText = `Using model: ${model}`;
   if (!segmenter) {
     console.error(`No segmentation function found for model: ${model}`);
     return;
