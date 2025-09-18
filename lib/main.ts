@@ -165,3 +165,5 @@ export async function segmentImage(
   }
   await segmenter(processedImage);
 }
+
+export { ModelType } from "./types";
