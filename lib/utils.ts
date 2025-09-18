@@ -38,7 +38,7 @@ export async function imageElementToBlob(
 
 export function drawRawImageDataOnCanvas(
   imageDataObject: ImageData,
-  canvasId = "segmentation-canvas"
+  canvasId: string
 ) {
   // Get the canvas element from the DOM.
   const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
