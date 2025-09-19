@@ -33,7 +33,6 @@ export async function segmentImageWithMediapipe(
 
   try {
     const result = imageSegmenter.segment(image);
-    console.log("Segmentation result:", result);
     return result;
   } catch (error) {
     console.error("Error processing the image:", error);

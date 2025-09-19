@@ -69,7 +69,6 @@ export function drawRawImageDataOnCanvas(
 
   // Step 2: Use putImageData() to draw the pixels on the canvas.
   ctx.putImageData(imageData, 0, 0);
-  console.log("Successfully drew raw image data on the canvas.");
 }
 
 export async function drawBlobToCanvas(
