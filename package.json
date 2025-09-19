@@ -1,9 +1,9 @@
 {
   "name": "remove-bg-browser",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
-   "types": "dist/main.d.ts",
+  "types": "dist/main.d.ts",
   "scripts": {
     "build": "tsc && vite build"
   },
