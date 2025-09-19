@@ -1,77 +1,25 @@
 import { drawRawImageDataOnCanvas } from "./utils";
 import { ModelType, type AllowedImageTypes, type ModelTypeKeys } from "./types";
 import { prepareImageForModel } from "./imgConverter";
+import { drawOnCanvas, returnPng } from "./models/bodyPix";
 
 async function segmentImageBodyPix(
   image: HTMLImageElement | ImageData,
   canvasId?: string
-): Promise<void> {
+): Promise<void | string> {
   const bodyPixModule = await import("./models/bodyPix");
   const bodyPixResults = await bodyPixModule.segmentImageWithBodyPix(image); // This should now return an array
+
+  if (!bodyPixResults || bodyPixResults.length === 0) {
+    console.error("No body segmentation results returned.");
+    return;
+  }
+
   if (canvasId) {
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (bodyPixResults && bodyPixResults.length > 0) {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const ctx = canvas.getContext("2d")!;
-
-      // Create a single combined mask for all people
-      const combinedMaskCanvas = document.createElement("canvas");
-      combinedMaskCanvas.width = bodyPixResults[0].width;
-      combinedMaskCanvas.height = bodyPixResults[0].height;
-      const combinedMaskCtx = combinedMaskCanvas.getContext("2d")!;
-      const combinedMaskImageData = combinedMaskCtx.createImageData(
-        combinedMaskCanvas.width,
-        combinedMaskCanvas.height
-      );
-
-      // Initialize the combined mask data to all zeros (transparent)
-      const combinedMaskData = new Uint8ClampedArray(
-        combinedMaskCanvas.width * combinedMaskCanvas.height
-      );
-
-      // Loop through each person's segmentation result
-      bodyPixResults.forEach((personResult) => {
-        const personMaskData = personResult.data;
-        // Add this person's mask to the combined mask
-        for (let i = 0; i < personMaskData.length; i++) {
-          // If this pixel is part of the person, set the combined mask value to 1
-          if (personMaskData[i] > 0) {
-            combinedMaskData[i] = 1;
-          }
-        }
-      });
-
-      // Populate the combined mask ImageData
-      for (let i = 0; i < combinedMaskData.length; i++) {
-        const value = combinedMaskData[i]; // 0 or 1
-        const j = i * 4; // RGBA index
-        const alpha = value > 0 ? 255 : 0;
-
-        combinedMaskImageData.data[j] = 0; // R
-        combinedMaskImageData.data[j + 1] = 0; // G
-        combinedMaskImageData.data[j + 2] = 0; // B
-        combinedMaskImageData.data[j + 3] = alpha; // A
-      }
-
-      combinedMaskCtx.putImageData(combinedMaskImageData, 0, 0);
-
-      // Step 1: Draw the original image
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (image instanceof HTMLImageElement) {
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-      } else {
-        ctx.putImageData(image, 0, 0);
-      }
-
-      // Step 2: Apply the combined mask
-      ctx.globalCompositeOperation = "destination-in";
-      ctx.drawImage(combinedMaskCanvas, 0, 0, canvas.width, canvas.height);
-
-      // Reset for future use
-      ctx.globalCompositeOperation = "source-over";
-    }
+    drawOnCanvas(bodyPixResults, image, canvasId);
   } else {
+    const png = await returnPng(bodyPixResults, image);
+    return png;
   }
 }
 
@@ -184,5 +132,4 @@ export async function segmentImage(
   }
   await segmenter(processedImage, canvasId);
 }
-
 export { ModelType } from "./types";
