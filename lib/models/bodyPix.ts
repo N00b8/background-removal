@@ -4,6 +4,7 @@ import {
   type PersonSegmentation,
 } from "@tensorflow-models/body-pix";
 import "@tensorflow/tfjs";
+import { blobToDataURL } from "../utils";
 
 let bodyPixNet: BodyPix | undefined;
 
@@ -151,7 +152,7 @@ export const returnPng = async (
     image instanceof HTMLImageElement ? image.naturalWidth : image.width;
   const HEIGHT =
     image instanceof HTMLImageElement ? image.naturalHeight : image.height;
-  const maskImageData = createMaskFromSegmentations(bodyPixResults!);
+  const maskImageData = createMaskFromSegmentations(bodyPixResults);
   const maskCanvas = maskToCanvas(maskImageData);
   const offscreenCanvas = new OffscreenCanvas(WIDTH, HEIGHT);
   const offscreenCtx = offscreenCanvas.getContext("2d")!;
@@ -173,6 +174,6 @@ export const returnPng = async (
   // Reset for future use
   offscreenCtx.globalCompositeOperation = "source-over";
   const blob = await offscreenCanvas.convertToBlob({ type: "image/png" });
-  const url = URL.createObjectURL(blob);
+  const url = await blobToDataURL(blob);
   return url;
 };

@@ -130,6 +130,7 @@ export async function segmentImage(
     console.error(`No segmentation function found for model: ${model}`);
     return;
   }
-  await segmenter(processedImage, canvasId);
+  const res = await segmenter(processedImage, canvasId);
+  if (res) return res;
 }
 export { ModelType } from "./types";
