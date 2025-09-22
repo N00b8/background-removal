@@ -31,5 +31,3 @@ you can optionally pass a canvas Id(browsers only) and our package will draw the
 
 License
 MIT (Assuming you will add an MIT license file)
-
-Readme
