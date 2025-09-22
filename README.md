@@ -1,4 +1,4 @@
-#Remove BG Browser
+# Remove BG Browser
 
 🚀 Fast and simple background remover which leverages the latest innovations in in-browser machine learning to use opensource models to remove background from images
 
