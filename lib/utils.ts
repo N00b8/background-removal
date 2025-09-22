@@ -37,7 +37,7 @@ export async function imageElementToBlob(
 }
 
 export function drawRawImageDataOnCanvas(
-  imageDataObject: ImageData,
+  imageData: ImageData,
   canvasId: string
 ) {
   // Get the canvas element from the DOM.
@@ -57,15 +57,8 @@ export function drawRawImageDataOnCanvas(
   }
 
   // Adjust canvas dimensions to match the image data.
-  canvas.width = imageDataObject.width;
-  canvas.height = imageDataObject.height;
-
-  // Step 1: Create a new ImageData object using the raw data.
-  const imageData = new ImageData(
-    imageDataObject.data,
-    imageDataObject.width,
-    imageDataObject.height
-  );
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
 
   // Step 2: Use putImageData() to draw the pixels on the canvas.
   ctx.putImageData(imageData, 0, 0);
@@ -140,4 +133,21 @@ export function blobToDataURL(blob: Blob): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
+}
+
+export async function imageDataToPng(imageData: ImageData): Promise<string> {
+  // Create an offscreen canvas
+  const canvas = new OffscreenCanvas(imageData.width, imageData.height);
+  const ctx = canvas.getContext("2d");
+
+  // Put ImageData onto canvas
+  if (!ctx) {
+    throw new Error("Could not get 2D rendering context from canvas.");
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  // Convert to Blob (PNG preserves transparency)
+  const blob = await canvas.convertToBlob({ type: "image/png" });
+  const url = await blobToDataURL(blob);
+  return url;
 }

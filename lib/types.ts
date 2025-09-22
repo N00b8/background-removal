@@ -24,3 +24,41 @@ export interface ConversionDecision {
   targetType?: ConversionTarget;
   reason?: string;
 }
+
+export interface HuggingFaceRawImage {
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
+  channels: number;
+
+  // Derived props
+  readonly size: [number, number];
+
+  // Transformations
+  clone(): HuggingFaceRawImage;
+  grayscale(): HuggingFaceRawImage;
+  rgb(): HuggingFaceRawImage;
+  rgba(): HuggingFaceRawImage;
+  putAlpha(alpha: number | Uint8Array): HuggingFaceRawImage;
+
+  // Async transforms
+  resize(
+    width: number,
+    height: number,
+    options?: { resample?: number }
+  ): Promise<HuggingFaceRawImage>;
+  crop(box: [number, number, number, number]): Promise<HuggingFaceRawImage>;
+  pad(paddings: [number, number, number, number]): Promise<HuggingFaceRawImage>;
+  center_crop(size: [number, number]): Promise<HuggingFaceRawImage>;
+  convert(type: string): Promise<HuggingFaceRawImage>;
+
+  // Exporters
+  toCanvas(): HTMLCanvasElement;
+  toBlob(type?: string, quality?: number): Promise<Blob>;
+  toTensor(layout?: "CHW" | "HWC"): any;
+  toSharp(): any; // Node.js only
+  save(path: string): Promise<void>;
+
+  // Channel utilities
+  split(): HuggingFaceRawImage[];
+}

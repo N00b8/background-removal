@@ -1,7 +1,13 @@
-import { drawRawImageDataOnCanvas } from "./utils";
-import { ModelType, type AllowedImageTypes, type ModelTypeKeys } from "./types";
+import { drawRawImageDataOnCanvas, imageDataToPng } from "./utils";
+import {
+  ModelType,
+  type AllowedImageTypes,
+  type HuggingFaceRawImage,
+  type ModelTypeKeys,
+} from "./types";
 import { prepareImageForModel } from "./imgConverter";
 import { drawOnCanvas, returnPng } from "./models/bodyPix";
+import { mediapipeResultToPng } from "./models/mediapipe";
 
 async function segmentImageBodyPix(
   image: HTMLImageElement | ImageData,
@@ -26,21 +32,33 @@ async function segmentImageBodyPix(
 async function segmentImageHuggingFace(
   image: Blob,
   canvasId?: string
-): Promise<void> {
+): Promise<undefined | string> {
   const huggingFaceModule = await import("./models/huggingFace");
-  const res = await huggingFaceModule.segmentImageWithHuggingFace(image);
-  if (res && canvasId) {
-    drawRawImageDataOnCanvas(res[0], canvasId);
+  const res: HuggingFaceRawImage[] =
+    await huggingFaceModule.segmentImageWithHuggingFace(image);
+  if (!res || res.length === 0) {
+    console.error("No HuggingFace segmentation results returned.");
+    return;
+  }
+  // Step 1: Create a new ImageData object using the raw data.
+  if (canvasId) {
+    const imageData = new ImageData(
+      res[0].data as any,
+      res[0].width,
+      res[0].height
+    );
+    drawRawImageDataOnCanvas(imageData, canvasId);
+  } else {
+    const blob = res[0].toBlob("image/png");
+    const url = URL.createObjectURL(await blob);
+    return url;
   }
 }
 
 async function segmentImageMediapipe(
   image: HTMLImageElement,
   canvasId?: string
-): Promise<void> {
-  const canvas = document.getElementById(
-    "segmentation-canvas"
-  ) as HTMLCanvasElement;
+): Promise<undefined | string> {
   const mediapipeModule = await import("./models/mediapipe");
   const res = await mediapipeModule.segmentImageWithMediapipe(image);
   if (!res || !res.categoryMask) {
@@ -48,56 +66,38 @@ async function segmentImageMediapipe(
     return;
   }
 
-  const mask = res.categoryMask;
-  canvas.width = image.width;
-  canvas.height = image.height;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    console.error("Could not get 2D rendering context from canvas.");
-    return;
-  }
   if (canvasId) {
-    {
-      const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Could not get 2D rendering context from canvas.");
-        return;
-      }
-      ctx.drawImage(image, 0, 0, image.width, image.height);
-
-      // Get the pixel data from the original image on the canvas.
-      // This is the data we will modify.
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data; // This is a Uint8ClampedArray for all pixels.
-
-      // Get the segmentation mask data as a Float32Array
-      const maskData = mask.getAsFloat32Array();
-
-      // Iterate through the pixels of the mask and original image simultaneously.
-      for (let i = 0; i < mask.height * mask.width; i++) {
-        // Get the mask value for the current pixel.
-        // 1.0 = person, 0.0 = background.
-        const maskValue = maskData[i];
-
-        // Invert the masking logic: check if the pixel is part of the person.
-        if (maskValue === 1.0) {
-          // If it's a person pixel, make it fully transparent (alpha = 0).
-          // The pixel data array is structured as [R, G, B, A, R, G, B, A, ...]
-          data[i * 4 + 3] = 0;
-        }
-        // If the maskValue is 0.0, the pixel is background, and we do nothing.
-        // The alpha channel for that pixel remains as it was in the original image (presumably 255).
-      }
-
-      // Put the modified pixel data back onto the canvas.
-      ctx.putImageData(imageData, 0, 0);
+    const mask = res.categoryMask;
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.error("Could not get 2D rendering context from canvas.");
+      return;
     }
-  }
-  // Draw the original image onto the canvas.
+    ctx.drawImage(image, 0, 0, image.width, image.height);
 
-  // Return the canvas, which now contains the cropped image.
+    // Get the pixel data from the original image on the canvas.
+    // This is the data we will modify.
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data; // This is a Uint8ClampedArray for all pixels.
+
+    // Get the segmentation mask data as a Float32Array
+    const maskData = mask.getAsFloat32Array();
+
+    // Iterate through the pixels of the mask and original image simultaneously.
+    for (let i = 0; i < mask.height * mask.width; i++) {
+      const maskValue = maskData[i];
+      if (maskValue === 1.0) {
+        data[i * 4 + 3] = 0;
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+  } else {
+    const png = await mediapipeResultToPng(res, image);
+    return png;
+  }
 }
 
 async function getModelFunction(
@@ -133,4 +133,5 @@ export async function segmentImage(
   const res = await segmenter(processedImage, canvasId);
   if (res) return res;
 }
+
 export { ModelType } from "./types";
