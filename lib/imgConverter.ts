@@ -19,12 +19,7 @@ function getImageDataType(imageData: AllowedImageTypes): string {
   if (imageData instanceof HTMLImageElement) return "HTMLImageElement";
   if (imageData instanceof ImageBitmap) return "ImageBitmap";
   if (imageData instanceof Blob) return "Blob";
-  console.log(
-    typeof imageData,
-    "****************************************************************"
-  );
   if (typeof imageData === "string") return "string";
-
   throw new Error(`Unsupported image data type: ${typeof imageData}`);
 }
 
