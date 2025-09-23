@@ -1,4 +1,4 @@
-import { drawRawImageDataOnCanvas, imageDataToPng } from "./utils";
+import { drawRawImageDataOnCanvas } from "./utils";
 import {
   ModelType,
   type AllowedImageTypes,

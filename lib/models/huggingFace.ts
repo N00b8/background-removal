@@ -1,10 +1,9 @@
-import { pipeline } from "@huggingface/transformers";
-
 let removerPipeline: undefined | any;
 // Load the model when the script loads
 async function loadModel() {
   if (removerPipeline) return; // already loaded
   try {
+    const { pipeline } = await import("@huggingface/transformers");
     // Use a model from the Hugging Face Hub specifically for background removal.
     // The 'image-segmentation' task is what we need.
     removerPipeline = await pipeline(
