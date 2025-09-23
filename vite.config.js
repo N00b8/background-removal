@@ -1,19 +1,20 @@
-import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import { defineConfig } from "vite";
+import dts from "vite-plugin-dts";
 
 export default defineConfig({
   build: {
-    lib: {
-      entry: 'lib/main.ts', // adjust if your entry file is different
-      name: 'background-remover',
-      fileName: 'main'
+    rollupOptions: {
+      external: ["@tensorflow/tfjs", "@tensorflow-models/body-pix", "@huggingface/transformers"],
     },
-
+    lib: {
+      entry: "lib/main.ts", // adjust if your entry file is different
+      name: "background-remover",
+      fileName: "main",
+    },
   },
-   plugins: [
+  plugins: [
     dts({
       insertTypesEntry: true,
-
-    })
-  ]
+    }),
+  ],
 });

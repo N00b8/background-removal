@@ -57,7 +57,6 @@ export async function segmentImageWithBodyPix(
   }
 }
 // Initialize the segmenter when the script loads
-createImageSegmenter();
 
 function createMaskFromSegmentations(segs: PersonSegmentation[]): ImageData {
   if (segs.length === 0) throw new Error("No segmentations provided");
