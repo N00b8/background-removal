@@ -123,7 +123,7 @@ export async function segmentImage(
   }: { model: ModelTypeKeys; canvasId?: string } = {
     model: ModelType.BodyPix,
   }
-): Promise<void> {
+): Promise<void | string> {
   const segmenter = await getModelFunction(model);
   const processedImage = await prepareImageForModel(image, model);
   if (!segmenter) {
