@@ -4,7 +4,7 @@
 
 
 ## Features
-AI-Powered Background Removal: Leverages state-of-the-art models like hugging face's onnx-community/ormbg-ONNX, Googles mediapipe selfie segmentation and BodyPix 2 by tensorflow.js. Although the same says browser you can use it in node.js as well as it doesnt rely on any broswer apis
+AI-Powered Background Removal: Leverages state-of-the-art models like hugging face's onnx-community/ormbg-ONNX, Googles mediapipe selfie segmentation and BodyPix 2 by tensorflow.js. Although the name says "browser" you can use it in node.js as well as it doesnt rely on any broswer apis
 
 ## Installation
 ```
